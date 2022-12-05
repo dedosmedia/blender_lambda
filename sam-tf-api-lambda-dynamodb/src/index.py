@@ -51,11 +51,13 @@ def save_to_ddb(ddb_payload):
     )
 
 
-def lambda_handler(event, context):    
+def handler(event, context):    
     processed_event = json.loads(event['body'])
     review_id = uuid.uuid4()
     response = None
     
+    print("V1.0.4")
+
     # Check if event data is valid
     event_validation, msg = validate_event(processed_event)
 

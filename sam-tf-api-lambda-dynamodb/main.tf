@@ -64,7 +64,7 @@ module "docker_image" {
     ]
   })
   image_tag   = local.image_tag
-  source_path = "/src" #abspath(path.module) #format("%v/%v",abspath(path.module) + "src")
+  source_path = "src/" #abspath(path.module) #format("%v/%v",abspath(path.module) + "src")
   build_args = {
 
   }
@@ -78,7 +78,7 @@ module "aws_lambda" {
 
   function_name = local.name
   environment_variables = {
-    "NODE_ENV"            = "production",
+    "NODE_ENV"            = "dev",
     "DYNAMODB_TABLE_NAME" = "${aws_dynamodb_table.book-reviews-ddb-table.id}"
   }
   create_package = false
@@ -92,36 +92,19 @@ module "aws_lambda" {
   architectures = ["x86_64"]
 
 }
-
-
 /*
-# Lambda function desde una imagen de contenedor
-resource "aws_lambda_function" "python-lambda-function" {
-  function_name = "python-lambda-function"
-  description   = "lambda function from terraform"
-  image_uri     = "aws_account_id.dkr.ecr.region.amazonaws.com/python-lambda-function:latest"
-                # "${data.aws_ecr_repository.my_image.repository_url}:latest"
-  memory_size   = 512
-  # EphemeralStorage
-  timeout       = 300
-  package_type  = "Image"
-  architectures = ["x86_64"]
-  role          = aws_iam_role.lambda-role.arn
-  source_code_hash = var.commit_hash  << New line
-}
-*/
-
 resource "null_resource" "sam_metadata_aws_lambda_function_publish_book_review" {
   triggers = {
-    resource_name     = "aws_lambda_function.${local.name}"
+    resource_name     = "module.aws_lambda.aws_lambda_function.this[0]"
     resource_type     = "IMAGE_LAMBDA_FUNCTION"
-    docker_context    = abspath(path.module)
+    docker_context    = "src/"
     docker_file       = "Dockerfile"
     docker_build_args = jsonencode({}) # TODO: reemplazar con jsonencode(var.buildargs)
     docker_tag        = local.image_tag
   }
-
 }
+*/
+
 
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -276,6 +259,7 @@ resource "aws_cloudwatch_log_group" "api_gw" {
   retention_in_days = 30
 }
 
+
 resource "aws_lambda_permission" "api_gw" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
@@ -284,3 +268,4 @@ resource "aws_lambda_permission" "api_gw" {
 
   source_arn = "${aws_apigatewayv2_api.lambda.execution_arn}/*/*"
 }
+

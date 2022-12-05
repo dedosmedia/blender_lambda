@@ -4,5 +4,5 @@
 locals {
   name = "04-image-as-lambda"
 
-  image_tag = "1.0.0"
+  image_tag = "1.0.4"
 }
