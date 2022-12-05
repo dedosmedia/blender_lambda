@@ -1,0 +1,41 @@
+service: blender-on-lambda
+frameworkVersion: '2'
+configValidationMode: error
+
+custom:
+  destinationBucket: blender-output-dh
+
+provider:
+  name: aws
+  region: us-east-1
+  memorySize: 10240
+  timeout: 900
+  ecr:
+    images:
+      blender-container-image:
+        path: ./
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:PutObject"
+        - "s3:GetObject"
+      Resource:
+        Fn::Join:
+          - ""
+          - - "arn:aws:s3:::"
+            - "${self:custom.destinationBucket}"
+            - "/*"
+
+functions:
+  render:
+    image:
+      name: blender-container-image
+    maximumRetryAttempts: 0
+
+resources:
+  Resources:
+    S3BucketOutputs:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.destinationBucket}

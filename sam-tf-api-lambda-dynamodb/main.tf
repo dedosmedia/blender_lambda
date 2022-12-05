@@ -17,49 +17,75 @@ terraform {
 }
 
 provider "aws" {
-    region = "us-east-1"
-    profile = "terraform"
+  region = "us-east-1"
 }
 
 
 resource "aws_lambda_function" "publish_book_review" {
-    filename = "${local.building_path}/${local.lambda_code_filename}"
-    handler = "index.lambda_handler"
-    runtime = "python3.8"
-    function_name = "publish-book-review"
-    role = aws_iam_role.iam_for_lambda.arn
-    timeout = 30
-    depends_on = [
-        null_resource.build_lambda_function
-    ]
+  filename      = "${local.building_path}/${local.lambda_code_filename}"
+  handler       = "index.lambda_handler"
+  runtime       = "python3.8"
+  function_name = "publish-book-review"
+  role          = aws_iam_role.iam_for_lambda.arn
+  timeout       = 30
+  depends_on = [
+    null_resource.build_lambda_function
+  ]
 
-    environment {
-        variables = {
-            DYNAMODB_TABLE_NAME = "${aws_dynamodb_table.book-reviews-ddb-table.id}"
-        }
+  environment {
+    variables = {
+      DYNAMODB_TABLE_NAME = "${aws_dynamodb_table.book-reviews-ddb-table.id}"
+    }
   }
 }
 
+/*
+# Lambda function desde una imagen de contenedor
+resource "aws_lambda_function" "python-lambda-function" {
+  function_name = "python-lambda-function"
+  description   = "lambda function from terraform"
+  image_uri     = "aws_account_id.dkr.ecr.region.amazonaws.com/python-lambda-function:latest"
+                # "${data.aws_ecr_repository.my_image.repository_url}:latest"
+  memory_size   = 512
+  # EphemeralStorage
+  timeout       = 300
+  package_type  = "Image"
+  architectures = ["x86_64"]
+  role          = aws_iam_role.lambda-role.arn
+  source_code_hash = var.commit_hash  << New line
+}
+*/
+
 resource "null_resource" "sam_metadata_aws_lambda_function_publish_book_review" {
-    triggers = {
-        resource_name = "aws_lambda_function.publish_book_review"
-        resource_type = "ZIP_LAMBDA_FUNCTION"
-        original_source_code = "${local.lambda_src_path}"
-        built_output_path = "${local.building_path}/${local.lambda_code_filename}"
-    }
-    depends_on = [
-        null_resource.build_lambda_function
-    ]
+  triggers = {
+    resource_name        = "aws_lambda_function.publish_book_review"
+    resource_type        = "ZIP_LAMBDA_FUNCTION"
+    original_source_code = "${local.lambda_src_path}"
+    built_output_path    = "${local.building_path}/${local.lambda_code_filename}"
+  }
+
+    /*
+     - "built_image_uri"   = "933916524267.dkr.ecr.us-east-1.amazonaws.com/05-docker-image-as-lambda:1.0.4"
+          - "docker_build_args" = jsonencode({})
+          - "docker_context"    = "/home/diego/Downloads/blender/docker-image-as-lambda"
+          - "docker_file"       = "Dockerfile"
+          - "docker_tag"        = "1.0.4"
+          - "resource_type"     = "IMAGE_LAMBDA_FUNCTION"
+    */
+
+  depends_on = [
+    null_resource.build_lambda_function
+  ]
 }
 
 resource "null_resource" "build_lambda_function" {
-    triggers = {
-        build_number = "${timestamp()}" # TODO: calculate hash of lambda function. Mo will have a look at this part
-    }
+  triggers = {
+    build_number = "${timestamp()}" # TODO: calculate hash of lambda function. Mo will have a look at this part
+  }
 
-    provisioner "local-exec" {
-        command =  substr(pathexpand("~"), 0, 1) == "/"? "./py_build.sh \"${local.lambda_src_path}\" \"${local.building_path}\" \"${local.lambda_code_filename}\" Function" : "powershell.exe -File .\\PyBuild.ps1 ${local.lambda_src_path} ${local.building_path} ${local.lambda_code_filename} Function"
-    }
+  provisioner "local-exec" {
+    command = substr(pathexpand("~"), 0, 1) == "/" ? "./py_build.sh \"${local.lambda_src_path}\" \"${local.building_path}\" \"${local.lambda_code_filename}\" Function" : "powershell.exe -File .\\PyBuild.ps1 ${local.lambda_src_path} ${local.building_path} ${local.lambda_code_filename} Function"
+  }
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -85,38 +111,38 @@ resource "aws_iam_role" "iam_for_lambda" {
     name = "dynamodb_access"
 
     policy = jsonencode({
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-            "Action": [
-                "dynamodb:List*",
-                "dynamodb:DescribeReservedCapacity*",
-                "dynamodb:DescribeLimits",
-                "dynamodb:DescribeTimeToLive"
-            ],
-            "Resource": "*",
-            "Effect": "Allow"
-            },
-            {
-            "Action": [
-                "dynamodb:BatchGet*",
-                "dynamodb:DescribeStream",
-                "dynamodb:DescribeTable",
-                "dynamodb:Get*",
-                "dynamodb:Query",
-                "dynamodb:Scan",
-                "dynamodb:BatchWrite*",
-                "dynamodb:CreateTable",
-                "dynamodb:Delete*",
-                "dynamodb:Update*",
-                "dynamodb:PutItem"
-            ],
-            "Resource": [
-                "${aws_dynamodb_table.book-reviews-ddb-table.arn}"
-            ],
-            "Effect": "Allow"
-            }
-        ]
+      "Version" : "2012-10-17",
+      "Statement" : [
+        {
+          "Action" : [
+            "dynamodb:List*",
+            "dynamodb:DescribeReservedCapacity*",
+            "dynamodb:DescribeLimits",
+            "dynamodb:DescribeTimeToLive"
+          ],
+          "Resource" : "*",
+          "Effect" : "Allow"
+        },
+        {
+          "Action" : [
+            "dynamodb:BatchGet*",
+            "dynamodb:DescribeStream",
+            "dynamodb:DescribeTable",
+            "dynamodb:Get*",
+            "dynamodb:Query",
+            "dynamodb:Scan",
+            "dynamodb:BatchWrite*",
+            "dynamodb:CreateTable",
+            "dynamodb:Delete*",
+            "dynamodb:Update*",
+            "dynamodb:PutItem"
+          ],
+          "Resource" : [
+            "${aws_dynamodb_table.book-reviews-ddb-table.arn}"
+          ],
+          "Effect" : "Allow"
+        }
+      ]
     })
   }
 
@@ -156,7 +182,7 @@ resource "aws_dynamodb_table" "book-reviews-ddb-table" {
   }
 
   tags = {
-    Name        = "book-reviews-table"
+    Name = "book-reviews-table"
   }
 }
 
