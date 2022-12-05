@@ -2,42 +2,97 @@
 # SPDX-License-Identifier: MIT-0
 
 terraform {
-  required_version = ">= 0.13.1"
+  required_version = "~> 1.0"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 3.19"
+      version = ">= 4.22.0"
     }
     random = {
       source  = "hashicorp/random"
       version = ">= 2.0"
     }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.1"
+    }
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = ">= 2.12"
+    }
   }
 }
+
+data "aws_region" "current" {}
+
+data "aws_caller_identity" "this" {}
+
+data "aws_ecr_authorization_token" "token" {}
 
 provider "aws" {
   region = "us-east-1"
 }
 
-
-resource "aws_lambda_function" "publish_book_review" {
-  filename      = "${local.building_path}/${local.lambda_code_filename}"
-  handler       = "index.lambda_handler"
-  runtime       = "python3.8"
-  function_name = "publish-book-review"
-  role          = aws_iam_role.iam_for_lambda.arn
-  timeout       = 30
-  depends_on = [
-    null_resource.build_lambda_function
-  ]
-
-  environment {
-    variables = {
-      DYNAMODB_TABLE_NAME = "${aws_dynamodb_table.book-reviews-ddb-table.id}"
-    }
+provider "docker" {
+  registry_auth {
+    address  = format("%v.dkr.ecr.%v.amazonaws.com", data.aws_caller_identity.this.account_id, data.aws_region.current.name)
+    username = data.aws_ecr_authorization_token.token.user_name
+    password = data.aws_ecr_authorization_token.token.password
   }
 }
+
+module "docker_image" {
+  source = "terraform-aws-modules/lambda/aws//modules/docker-build"
+
+  create_ecr_repo = true
+  ecr_repo        = local.name
+  ecr_repo_lifecycle_policy = jsonencode({
+    "rules" : [
+      {
+        "rulePriority" : 1,
+        "description" : "Keep only the last 2 images",
+        "selection" : {
+          "tagStatus" : "any",
+          "countType" : "imageCountMoreThan",
+          "countNumber" : 2
+        },
+        "action" : {
+          "type" : "expire"
+        }
+      }
+    ]
+  })
+  image_tag   = local.image_tag
+  source_path = "/src" #abspath(path.module) #format("%v/%v",abspath(path.module) + "src")
+  build_args = {
+
+  }
+
+}
+
+
+module "aws_lambda" {
+  source  = "terraform-aws-modules/lambda/aws"
+  version = "~> 2.7"
+
+  function_name = local.name
+  environment_variables = {
+    "NODE_ENV"            = "production",
+    "DYNAMODB_TABLE_NAME" = "${aws_dynamodb_table.book-reviews-ddb-table.id}"
+  }
+  create_package = false
+  lambda_role    = aws_iam_role.iam_for_lambda.arn
+
+  ##################
+  # Container Image
+  ##################
+  image_uri     = module.docker_image.image_uri
+  package_type  = "Image"
+  architectures = ["x86_64"]
+
+}
+
 
 /*
 # Lambda function desde una imagen de contenedor
@@ -58,35 +113,16 @@ resource "aws_lambda_function" "python-lambda-function" {
 
 resource "null_resource" "sam_metadata_aws_lambda_function_publish_book_review" {
   triggers = {
-    resource_name        = "aws_lambda_function.publish_book_review"
-    resource_type        = "ZIP_LAMBDA_FUNCTION"
-    original_source_code = "${local.lambda_src_path}"
-    built_output_path    = "${local.building_path}/${local.lambda_code_filename}"
+    resource_name     = "aws_lambda_function.${local.name}"
+    resource_type     = "IMAGE_LAMBDA_FUNCTION"
+    docker_context    = abspath(path.module)
+    docker_file       = "Dockerfile"
+    docker_build_args = jsonencode({}) # TODO: reemplazar con jsonencode(var.buildargs)
+    docker_tag        = local.image_tag
   }
 
-    /*
-     - "built_image_uri"   = "933916524267.dkr.ecr.us-east-1.amazonaws.com/05-docker-image-as-lambda:1.0.4"
-          - "docker_build_args" = jsonencode({})
-          - "docker_context"    = "/home/diego/Downloads/blender/docker-image-as-lambda"
-          - "docker_file"       = "Dockerfile"
-          - "docker_tag"        = "1.0.4"
-          - "resource_type"     = "IMAGE_LAMBDA_FUNCTION"
-    */
-
-  depends_on = [
-    null_resource.build_lambda_function
-  ]
 }
 
-resource "null_resource" "build_lambda_function" {
-  triggers = {
-    build_number = "${timestamp()}" # TODO: calculate hash of lambda function. Mo will have a look at this part
-  }
-
-  provisioner "local-exec" {
-    command = substr(pathexpand("~"), 0, 1) == "/" ? "./py_build.sh \"${local.lambda_src_path}\" \"${local.building_path}\" \"${local.lambda_code_filename}\" Function" : "powershell.exe -File .\\PyBuild.ps1 ${local.lambda_src_path} ${local.building_path} ${local.lambda_code_filename} Function"
-  }
-}
 
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_for_lambda"
@@ -222,7 +258,7 @@ resource "aws_apigatewayv2_stage" "lambda" {
 resource "aws_apigatewayv2_integration" "publish_book_review_api" {
   api_id = aws_apigatewayv2_api.lambda.id
 
-  integration_uri    = aws_lambda_function.publish_book_review.invoke_arn
+  integration_uri    = module.aws_lambda.lambda_function_invoke_arn
   integration_type   = "AWS_PROXY"
   integration_method = "POST"
 }
@@ -243,7 +279,7 @@ resource "aws_cloudwatch_log_group" "api_gw" {
 resource "aws_lambda_permission" "api_gw" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.publish_book_review.function_name
+  function_name = module.aws_lambda.lambda_function_name
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "${aws_apigatewayv2_api.lambda.execution_arn}/*/*"

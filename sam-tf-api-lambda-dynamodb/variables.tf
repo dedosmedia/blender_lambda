@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT-0
 
 locals {
-  building_path = "build"
-  lambda_code_filename = "setupRendering.zip"
-  lambda_src_path = "./src"
+  name = "04-image-as-lambda"
+
+  image_tag = "1.0.0"
 }
