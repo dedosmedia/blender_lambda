@@ -1,0 +1,100 @@
+{
+    "resource": "/upload",
+    "path": "/upload",
+    "httpMethod": "POST",
+    "headers": {
+        "Accept": "* /*",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Content-Type": "image/jpeg",
+        "event-id": "CONGRESO",
+        "file-name": "images4.jpg",
+        "Host": "th1d0nw8dl.execute-api.us-east-1.amazonaws.com",
+        "Postman-Token": "b3c98980-21a1-43c2-b02f-c8ae79ed5311",
+        "session-id": "SESS123",
+        "session-n": 1,
+        "user-id": "diego@dedosmedia.com",
+        "session-total": 4,
+        "User-Agent": "PostmanRuntime/7.29.2",
+        "X-Amzn-Trace-Id": "Root=1-63909bfb-2110870c1b40e96a7f76237b",
+        "X-Forwarded-For": "152.202.222.254",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https"
+    },
+    "multiValueHeaders": {
+        "Accept": [
+            "*/*"
+        ],
+        "Accept-Encoding": [
+            "gzip, deflate, br"
+        ],
+        "Content-Type": [
+            "image/jpeg"
+        ],
+        "event-id": [
+            "ad45"
+        ],
+        "file-name": [
+            "images2.jpg"
+        ],
+        "Host": [
+            "th1d0nw8dl.execute-api.us-east-1.amazonaws.com"
+        ],
+        "Postman-Token": [
+            "b3c98980-21a1-43c2-b02f-c8ae79ed5311"
+        ],
+        "session-id": [
+            "a15d15"
+        ],
+        "User-Agent": [
+            "PostmanRuntime/7.29.2"
+        ],
+        "X-Amzn-Trace-Id": [
+            "Root=1-63909bfb-2110870c1b40e96a7f76237b"
+        ],
+        "X-Forwarded-For": [
+            "152.202.222.254"
+        ],
+        "X-Forwarded-Port": [
+            "443"
+        ],
+        "X-Forwarded-Proto": [
+            "https"
+        ]
+    },
+    "queryStringParameters": "",
+    "multiValueQueryStringParameters": "",
+    "pathParameters": "",
+    "stageVariables": "",
+    "requestContext": {
+        "resourceId": "g2h96y",
+        "resourcePath": "/upload",
+        "httpMethod": "POST",
+        "extendedRequestId": "cx1PQEaaIAMFeQg=",
+        "requestTime": "07/Dec/2022: 13: 58: 19 +0000",
+        "path": "/DEV/upload",
+        "accountId": "933916524267",
+        "protocol": "HTTP/1.1",
+        "stage": "DEV",
+        "domainPrefix": "th1d0nw8dl",
+        "requestTimeEpoch": 1670421499099,
+        "requestId": "16390532-054d-4d45-b3cd-95fed5e167de",
+        "identity": {
+            "cognitoIdentityPoolId": "",
+            "accountId": "",
+            "cognitoIdentityId": "",
+            "caller": "",
+            "sourceIp": "152.202.222.254",
+            "principalOrgId": "",
+            "accessKey": "",
+            "cognitoAuthenticationType": "",
+            "cognitoAuthenticationProvider": "",
+            "userArn": "",
+            "userAgent": "PostmanRuntime/7.29.2",
+            "user": ""
+        },
+        "domainName": "th1d0nw8dl.execute-api.us-east-1.amazonaws.com",
+        "apiId": "th1d0nw8dl"
+    },
+    "body": "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAApgAAAKYB3X3/OAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAANCSURBVEiJtZZPbBtFFMZ/M7ubXdtdb1xSFyeilBapySVU8h8OoFaooFSqiihIVIpQBKci6KEg9Q6H9kovIHoCIVQJJCKE1ENFjnAgcaSGC6rEnxBwA04Tx43t2FnvDAfjkNibxgHxnWb2e/u992bee7tCa00YFsffekFY+nUzFtjW0LrvjRXrCDIAaPLlW0nHL0SsZtVoaF98mLrx3pdhOqLtYPHChahZcYYO7KvPFxvRl5XPp1sN3adWiD1ZAqD6XYK1b/dvE5IWryTt2udLFedwc1+9kLp+vbbpoDh+6TklxBeAi9TL0taeWpdmZzQDry0AcO+jQ12RyohqqoYoo8RDwJrU+qXkjWtfi8Xxt58BdQuwQs9qC/afLwCw8tnQbqYAPsgxE1S6F3EAIXux2oQFKm0ihMsOF71dHYx+f3NND68ghCu1YIoePPQN1pGRABkJ6Bus96CutRZMydTl+TvuiRW1m3n0eDl0vRPcEysqdXn+jsQPsrHMquGeXEaY4Yk4wxWcY5V/9scqOMOVUFthatyTy8QyqwZ+kDURKoMWxNKr2EeqVKcTNOajqKoBgOE28U4tdQl5p5bwCw7BWquaZSzAPlwjlithJtp3pTImSqQRrb2Z8PHGigD4RZuNX6JYj6wj7O4TFLbCO/Mn/m8R+h6rYSUb3ekokRY6f/YukArN979jcW+V/S8g0eT/N3VN3kTqWbQ428m9/8k0P/1aIhF36PccEl6EhOcAUCrXKZXXWS3XKd2vc/TRBG9O5ELC17MmWubD2nKhUKZa26Ba2+D3P+4/MNCFwg59oWVeYhkzgN/JDR8deKBoD7Y+ljEjGZ0sosXVTvbc6RHirr2reNy1OXd6pJsQ+gqjk8VWFYmHrwBzW/n+uMPFiRwHB2I7ih8ciHFxIkd/3Omk5tCDV1t+2nNu5sxxpDFNx+huNhVT3/zMDz8usXC3ddaHBj1GHj/As08fwTS7Kt1HBTmyN29vdwAw+/wbwLVOJ3uAD1wi/dUH7Qei66PfyuRj4Ik9is+hglfbkbfR3cnZm7chlUWLdwmprtCohX4HUtlOcQjLYCu+fzGJH2QRKvP3UNz8bWk1qMxjGTOMThZ3kvgLI5AzFfo379UAAAAASUVORK5CYII=",
+    "isBase64Encoded": true
+}
